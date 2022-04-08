@@ -25,6 +25,9 @@ TARGET_LINK_LIBRARIES(run_mpi_trivial graph_mining)
 #ADD_EXECUTABLE(performance_compare_test performance_compare_test.cpp)
 #TARGET_LINK_LIBRARIES(performance_compare_test graph_mining)
 
+ADD_EXECUTABLE(run_mpi run_mpi.cpp)
+TARGET_LINK_LIBRARIES(run_mpi graph_mining)
+
 ADD_EXECUTABLE(schedule_printer schedule_printer.cpp)
 TARGET_LINK_LIBRARIES(schedule_printer graph_mining)
 

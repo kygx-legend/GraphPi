@@ -28,7 +28,7 @@ public:
     void get_loop(int*&, int&);
 
 private:
-    static const int MAXTHREAD = 24, MESSAGE_SIZE = 5;
+    static const int MAXTHREAD = 32, MESSAGE_SIZE = 5;
     Graph* graph;
     int *loop_data[MAXTHREAD], comm_sz, my_rank, idlethreadcnt, threadcnt, mpi_chunk_size, omp_chunk_size;
     unsigned int loop_size[MAXTHREAD], *data[MAXTHREAD];

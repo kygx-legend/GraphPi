@@ -11,8 +11,10 @@
 #include <algorithm>
 
 void test_pattern(Graph* g, const Pattern &pattern, int performance_modeling_type, int restricts_type, bool use_in_exclusion_optimize = false) {
-    int thread_num = 24;
-    double t1,t2;
+    int thread_num = 32;
+    double t0,t1,t2;
+
+    t0 = get_wall_time();
     
     bool is_pattern_valid;
     Schedule schedule(pattern, is_pattern_valid, performance_modeling_type, restricts_type, use_in_exclusion_optimize, g->v_cnt, g->e_cnt, g->tri_cnt);
@@ -26,10 +28,11 @@ void test_pattern(Graph* g, const Pattern &pattern, int performance_modeling_typ
     printf("time %.6lf\n", t2 - t1);
     schedule.print_schedule();
     const auto& pairs = schedule.restrict_pair;
-    printf("%d ",pairs.size());
+    printf("%lu ",pairs.size());
     for(auto& p : pairs)
         printf("(%d,%d)",p.first,p.second);
     puts("");
+    printf("LOG,%.6lf,%.6lf,%lld\n", t1 - t0, t2 - t1, ans);
     fflush(stdout);
 
 }
@@ -52,6 +55,9 @@ int main(int argc,char *argv[]) {
     int size = atoi(argv[3]);
     char* adj_mat = argv[4];
 
+    int use_in_exclusion_optimize = atoi(argv[5]);
+    printf("use_in_exclusion_optimize %d\n", use_in_exclusion_optimize);
+
     // comments in include/schedule.h explain the meaning of these parameters.
     int test_type = 1; // performance_modeling_type = restricts_type = use_in_exclusion_optimize = 1
 
@@ -70,7 +76,7 @@ int main(int argc,char *argv[]) {
     fflush(stdout);
 
     Pattern p(size, adj_mat);
-    test_pattern(g, p, test_type, test_type, test_type);
+    test_pattern(g, p, test_type, test_type, use_in_exclusion_optimize);
     
     delete g;
 }

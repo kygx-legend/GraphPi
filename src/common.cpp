@@ -66,6 +66,9 @@ void GetDataType(DataType &type, const std::string str) {
     if(str == "Wiki-Vote" ) {
         type = DataType::Wiki_Vote;
     }
+    if (str == "Friendster") {
+        type = DataType::Friendster;
+    }
 }
 
 int read_int() {

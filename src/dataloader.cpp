@@ -6,7 +6,7 @@
 #include <cstring>
 
 bool DataLoader::load_data(Graph* &g, DataType type, const char* path, int oriented_type) {
-    if(type == Patents || type == Orkut || type == complete8 || type == LiveJournal || type == MiCo || type == CiteSeer || type == Wiki_Vote) {
+    if(type == Patents || type == Orkut || type == complete8 || type == LiveJournal || type == MiCo || type == CiteSeer || type == Wiki_Vote || type == Friendster) {
         return general_load_data(g, type, path, oriented_type);
     }
 
