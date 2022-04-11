@@ -43,6 +43,7 @@ private:
     static bool cmp_degree_lt(std::pair<int,int> a,std::pair<int,int> b);
 
     long long comb(int n,int k);
+    bool ust_load_data(Graph*& g, DataType type, const char* path, int oriented_type = 0);
     bool general_load_data(Graph* &g, DataType type, const char* path, int oriented_type = 0);
     bool twitter_load_data(Graph* &g, DataType type, const char* path, int oriented_type = 0);
 

@@ -4,9 +4,13 @@
 #include "../include/common.h"
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 
 bool DataLoader::load_data(Graph* &g, DataType type, const char* path, int oriented_type) {
-    if(type == Patents || type == Orkut || type == complete8 || type == LiveJournal || type == MiCo || type == CiteSeer || type == Wiki_Vote || type == Friendster) {
+    if (type == Friendster || type == Wiki_Vote) {
+        return ust_load_data(g, type, path, oriented_type);
+    }
+    if(type == Patents || type == Orkut || type == complete8 || type == LiveJournal || type == MiCo || type == CiteSeer || type == Wiki_Vote) {
         return general_load_data(g, type, path, oriented_type);
     }
 
@@ -15,6 +19,108 @@ bool DataLoader::load_data(Graph* &g, DataType type, const char* path, int orien
     }
     printf("invalid DataType!\n");
     return false;
+}
+
+bool DataLoader::ust_load_data(Graph*& g, DataType type, const char* path, int oriented_type) {
+  std::ifstream infile(path);
+  if (!infile.is_open()) {
+    printf("File not found. %s\n", path);
+    return false;
+  }
+  printf("Load begin in %s\n", path);
+  g = new Graph();
+
+  // load triangle counting information
+  switch (type) {
+        case DataType::Wiki_Vote : {
+            g->tri_cnt = Wiki_Vote_tri_cnt;
+            break;
+        }
+    case DataType::Friendster: {
+      g->tri_cnt = Friendster_tri_cnt;
+      break;
+    }
+    default: {
+      g->tri_cnt = -1;
+      break;
+    }
+  }
+
+  // process line: n_vertices n_edges
+  infile >> g->v_cnt >> g->e_cnt;
+  printf("%d %d\n", g->v_cnt, g->e_cnt);
+  g->e_cnt *= 2;  // store both directions for undirected graph
+  std::vector<int> degree(g->v_cnt);
+
+    std::pair<uint32_t, uint32_t> *e = new std::pair<uint32_t, uint32_t>[g->e_cnt];
+    id.clear();
+    uint32_t x,y;
+    uint32_t tmp_v;
+    unsigned int tmp_e;
+    tmp_v = 0;
+    tmp_e = 0;
+    for (unsigned int i = 0; i < g->e_cnt / 2; ++i) {
+        infile >> x >> y;
+        if(x == y) {
+            printf("find self circle\n");
+            g->e_cnt -=2;
+            continue;
+            //return false;
+        }
+        if(!id.count(x)) id[x] = tmp_v ++;
+        if(!id.count(y)) id[y] = tmp_v ++;
+        x = id[x];
+        y = id[y];
+        e[tmp_e++] = std::make_pair(x,y);
+        e[tmp_e++] = std::make_pair(y,x);
+        ++degree[x];
+        ++degree[y];
+        //if(tmp_e % 1000000u == 0u) {
+        //    printf("load %u edges\n",tmp_e);
+        //    fflush(stdout);
+        //}
+				if (i % 100000 == 0) {
+					printf("\r%.2f loaded\n", (double) i/g->e_cnt*2);
+          fflush(stdout);
+        }
+    }
+  
+	// The max size of intersections is the second largest degree.
+	std::sort(degree.begin(), degree.end());
+	VertexSet::max_intersection_size = std::max(VertexSet::max_intersection_size, degree[g->v_cnt - 2]);
+  g->max_degree = degree[g->v_cnt - 1];
+	degree.clear();
+
+    if(tmp_v != g->v_cnt) {
+        printf("vertex number error!\n");
+    }
+    if(tmp_e != g->e_cnt) {
+        printf("edge number error!\n");
+    }
+    if(tmp_v != g->v_cnt || tmp_e != g->e_cnt) {
+        fclose(stdin);
+        delete g;
+        delete[] e;
+        return false;
+    }
+    std::sort(e,e+tmp_e,cmp_pair);
+    g->e_cnt = unique(e,e+tmp_e) - e;
+    g->edge = new int[g->e_cnt];
+    g->vertex = new unsigned int[g->v_cnt + 1];
+    int lst_v = -1;
+    for(unsigned int i = 0; i < g->e_cnt; ++i) {
+        if(e[i].first != lst_v) {
+            g->vertex[e[i].first] = i;
+        }
+        lst_v = e[i].first;
+        g->edge[i] = e[i].second;
+    }
+    g->vertex[g->v_cnt] = g->e_cnt;
+    delete[] e;
+    printf("Success! There are %d nodes and %u edges.\n",g->v_cnt,g->e_cnt);
+    fflush(stdout);
+
+  return true;
 }
 
 bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, int oriented_type) {
@@ -50,6 +156,10 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
         }
         case DataType::Orkut : {
             g->tri_cnt = Orkut_tri_cnt;
+            break;
+        }
+        case DataType::Friendster : {
+            g->tri_cnt = Friendster_tri_cnt;
             break;
         }
         default : {
